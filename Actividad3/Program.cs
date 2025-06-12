@@ -431,7 +431,7 @@
                         case "1":
                             Console.Write($"Editar nombre {GetItemName(i)} a: ");
                             string newName = Console.ReadLine()!;
-                            SetUser(i, name: newName);
+                            SetItem(i, name: newName);
                             loop = false;
                             break;
                         case "2":
@@ -585,7 +585,7 @@
                             else
                             {
                                 i -= 1;
-                                bool valid = false;
+                                bool valid = false; 
                                 while (!valid)
                                 {
                                     Console.WriteLine($"{GetItemName(i)} - ${GetItemPrice(i)} - Stock: {GetItemStock(i)}\n");
