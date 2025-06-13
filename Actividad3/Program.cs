@@ -488,7 +488,7 @@
 
     private static void ClearItems()
     {
-        items = new string[5, 15];
+        items = new string[4, 15];
         itemsCount = 0;
     }
 
@@ -672,7 +672,7 @@
 
     private static void ClearSoldItems()
     {
-        soldItems = new string[5, 15];
+        soldItems = new string[5, 10];
         soldItemsCount = 0;
     }
 
