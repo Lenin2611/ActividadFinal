@@ -10,6 +10,7 @@
 
     static string[,] soldItems = new string[5, 10];
     static int soldItemsCount = 0;
+    static int saleItemsCount = 0;
 
 
     private static void Main(string[] args)
@@ -376,6 +377,7 @@
                     }
                     SetItem(itemsCount, (itemsCount + 1).ToString(), newItemName, newPrice, newStock);
                     itemsCount++;
+                    saleItemsCount++;
                     Console.Clear();
                     ShowMessage("Artículo agregado exitosamente.", false);
                     break;
@@ -461,6 +463,10 @@
                                 string stock = Console.ReadLine()!;
                                 if (int.TryParse(stock, out int s) && s > 0)
                                 {
+                                    if (GetItemStock(i) == 0)
+                                    {
+                                        saleItemsCount++;
+                                    }
                                     SetItem(i, stock: s);
                                     valid = true;
                                     loop = false;
@@ -522,9 +528,9 @@
 
     private static void Sales()
     {
-        if (usersCount == 0 || itemsCount == 0)
+        if (usersCount == 0 || itemsCount == 0 || saleItemsCount == 0)
         {
-            ShowMessage("No hay usuarios o artículos para generar factura.", false);
+            ShowMessage("No hay usuarios o artículos suficientes para generar factura.", false);
         }
         else
         {
@@ -567,94 +573,123 @@
                         loop = true;
                         while (loop)
                         {
-                            Console.Clear();
-                            Console.WriteLine("Lista de artículos:");
-                            for (int j = 0; j < itemsCount; j++)
+                            if (saleItemsCount > 0)
                             {
-                                Console.WriteLine($"{GetItemId(j)} - {GetItemName(j)}");
-                            }
-
-                            Console.Write($"Ingrese el id del artículo que quiere comprar: ");
-                            string item = Console.ReadLine()!;
-                            Console.Clear();
-
-                            if (!int.TryParse(item, out int i) || i > itemsCount || i <= 0)
-                            {
-                                ShowMessage("Ingrese una opción del menú válida.", false);
-                            }
-                            else
-                            {
-                                i -= 1;
-                                bool valid = false; 
-                                while (!valid)
+                                Console.Clear();
+                                Console.WriteLine("Lista de artículos:");
+                                for (int j = 0; j < itemsCount; j++)
                                 {
-                                    Console.WriteLine($"{GetItemName(i)} - ${GetItemPrice(i)} - Stock: {GetItemStock(i)}\n");
-                                    Console.Write($"Ingrese la cantidad de unidades que desea comprar: ");
-                                    string saleQuantity = Console.ReadLine()!;
-                                    if (int.TryParse(saleQuantity, out int q) && q > 0 && q <= GetItemStock(i))
+                                    if (GetItemStock(j) > 0)
                                     {
-                                        SetSoldItem(soldItemsCount, GetItemId(i), GetItemName(i), GetItemPrice(i), q, q * GetItemPrice(i));
-                                        Console.Clear();
-                                        Console.WriteLine($"Producto comprado. Total ${GetSoldItemTotal(soldItemsCount)}: {GetSoldItemName(soldItemsCount)} - {q} unidades a ${GetSoldItemPrice(soldItemsCount)} c/u.");
-                                        soldItemsCount++;
-                                        if (soldItemsCount == 10)
+                                        Console.WriteLine($"{GetItemId(j)} - {GetItemName(j)}");
+                                    }
+                                }
+
+                                Console.Write($"\nIngrese el id del artículo que quiere comprar: ");
+                                string item = Console.ReadLine()!;
+                                Console.Clear();
+
+                                if (!int.TryParse(item, out int i) || i > itemsCount || i <= 0)
+                                {
+                                    ShowMessage("Ingrese una opción del menú válida.", false);
+                                }
+                                else
+                                {
+                                    i -= 1;
+                                    bool valid = false;
+                                    while (!valid)
+                                    {
+                                        Console.WriteLine($"{GetItemName(i)} - ${GetItemPrice(i)} - Stock: {GetItemStock(i)}\n");
+                                        Console.Write($"Ingrese la cantidad de unidades que desea comprar: ");
+                                        string saleQuantity = Console.ReadLine()!;
+                                        if (int.TryParse(saleQuantity, out int q) && q > 0 && q <= GetItemStock(i))
                                         {
+                                            SetSoldItem(soldItemsCount, GetItemId(i), GetItemName(i), GetItemPrice(i), q, q * GetItemPrice(i));
                                             Console.Clear();
-                                            Console.WriteLine($"Información del comprador: {userBuying}");
-                                            Console.WriteLine("Productos Comprados:");
-                                            int sold = 0;
-                                            for (int j = 0; j < soldItemsCount; j++)
+                                            Console.WriteLine($"Producto comprado. Total ${GetSoldItemTotal(soldItemsCount)}: {GetSoldItemName(soldItemsCount)} - {q} unidades a ${GetSoldItemPrice(soldItemsCount)} c/u.");
+                                            soldItemsCount++;
+                                            SetItem(i, stock: GetItemStock(i) - q);
+                                            if (GetItemStock(i) == 0)
                                             {
-                                                int soldItemPrice = GetSoldItemTotal(j);
-                                                Console.WriteLine($"{GetSoldItemId(j)} - {GetSoldItemName(j)} - Valor Unitario: {GetSoldItemPrice(j)} - Cantidad: {GetSoldItemStock(j)} - Subtotal: ${soldItemPrice}");
-                                                sold += soldItemPrice;
+                                                saleItemsCount--;
                                             }
-                                            ShowMessage($"\nCompra exitosa. Valor total: ${sold}", true);
-                                            ClearSoldItems();
-                                            loop = false;
-                                            pass = false;
+                                            if (soldItemsCount == 10)
+                                            {
+                                                Console.Clear();
+                                                Console.WriteLine($"Información del comprador: {userBuying}");
+                                                Console.WriteLine("Productos Comprados:");
+                                                int sold = 0;
+                                                for (int j = 0; j < soldItemsCount; j++)
+                                                {
+                                                    int soldItemPrice = GetSoldItemTotal(j);
+                                                    Console.WriteLine($"{GetSoldItemId(j)} - {GetSoldItemName(j)} - Valor Unitario: {GetSoldItemPrice(j)} - Cantidad: {GetSoldItemStock(j)} - Subtotal: ${soldItemPrice}");
+                                                    sold += soldItemPrice;
+                                                }
+                                                ShowMessage($"\nCompra exitosa. Valor total: ${sold}", true);
+                                                ClearSoldItems();
+                                                loop = false;
+                                                pass = false;
+                                            }
+                                            else
+                                            {
+                                                bool loop1 = true;
+                                                while (loop1)
+                                                {
+                                                    switch (ShowMenu("nuevaVenta"))
+                                                    {
+                                                        case "1":
+                                                            loop1 = false;
+                                                            break;
+                                                        case "2":
+                                                            Console.Clear();
+                                                            Console.WriteLine($"Información del comprador: {userBuying}");
+                                                            Console.WriteLine("Productos Comprados:");
+                                                            int sold = 0;
+                                                            for (int j = 0; j < soldItemsCount; j++)
+                                                            {
+                                                                int soldItemPrice = GetSoldItemTotal(j);
+                                                                Console.WriteLine($"{GetSoldItemId(j)} - {GetSoldItemName(j)} - Valor Unitario: {GetSoldItemPrice(j)} - Cantidad: {GetSoldItemStock(j)} - Subtotal: ${soldItemPrice}");
+                                                                sold += soldItemPrice;
+                                                            }
+                                                            ShowMessage($"\nCompra exitosa. Valor total: ${sold}", true);
+                                                            ClearSoldItems();
+                                                            loop = false;
+                                                            loop1 = false;
+                                                            pass = false;
+                                                            break;
+                                                        default:
+                                                            ShowMessage("Opción no válida.", false);
+                                                            break;
+                                                    }
+                                                }
+                                            }
+                                            valid = true;
                                         }
                                         else
                                         {
-                                            bool loop1 = true;
-                                            while (loop1)
-                                            {
-                                                switch (ShowMenu("nuevaVenta"))
-                                                {
-                                                    case "1":
-                                                        loop1 = false;
-                                                        break;
-                                                    case "2":
-                                                        Console.Clear();
-                                                        Console.WriteLine($"Información del comprador: {userBuying}");
-                                                        Console.WriteLine("Productos Comprados:");
-                                                        int sold = 0;
-                                                        for (int j = 0; j < soldItemsCount; j++)
-                                                        {
-                                                            int soldItemPrice = GetSoldItemTotal(j);
-                                                            Console.WriteLine($"{GetSoldItemId(j)} - {GetSoldItemName(j)} - Valor Unitario: {GetSoldItemPrice(j)} - Cantidad: {GetSoldItemStock(j)} - Subtotal: ${soldItemPrice}");
-                                                            sold += soldItemPrice;
-                                                        }
-                                                        ShowMessage($"\nCompra exitosa. Valor total: ${sold}", true);
-                                                        ClearSoldItems();
-                                                        loop = false;
-                                                        loop1 = false;
-                                                        pass = false;
-                                                        break;
-                                                    default:
-                                                        ShowMessage("Opción no válida.", false);
-                                                        break;
-                                                }
-                                            }
+                                            Console.Clear();
+                                            ShowMessage($"Entrada inválida. El valor debe estar en stock.", false);
                                         }
-                                        valid = true;
-                                    }
-                                    else
-                                    {
-                                        Console.Clear();
-                                        ShowMessage("Entrada inválida.", false);
                                     }
                                 }
+                            }
+                            else
+                            {
+                                Console.Clear();
+                                Console.WriteLine($"No hay más artículos para comprar.\n");
+                                Console.WriteLine($"Información del comprador: {userBuying}");
+                                Console.WriteLine("Productos Comprados:");
+                                int sold = 0;
+                                for (int j = 0; j < soldItemsCount; j++)
+                                {
+                                    int soldItemPrice = GetSoldItemTotal(j);
+                                    Console.WriteLine($"{GetSoldItemId(j)} - {GetSoldItemName(j)} - Valor Unitario: {GetSoldItemPrice(j)} - Cantidad: {GetSoldItemStock(j)} - Subtotal: ${soldItemPrice}");
+                                    sold += soldItemPrice;
+                                }
+                                ShowMessage($"\nCompra exitosa. Valor total: ${sold}", true);
+                                ClearSoldItems();
+                                loop = false;
+                                pass = false;
                             }
                         }
                         break;
